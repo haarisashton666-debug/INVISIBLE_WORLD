@@ -1,0 +1,36 @@
+import streamlit as st
+import cv2
+import numpy as np
+
+st.title("Invisible Cloak")
+st.write("Step 1: Photo of the background WITHOUT you.")
+st.write("Step 2: Photo of you holding a RED cloth.")
+
+bg_file = st.camera_input("Step 1: Background only")
+fg_file = st.camera_input("Step 2: You with red cloth")
+
+def to_cv(f):
+    data = np.frombuffer(f.getvalue(), np.uint8)
+    return cv2.imdecode(data, cv2.IMREAD_COLOR)
+
+if bg_file and fg_file:
+    bg = to_cv(bg_file)
+    img = to_cv(fg_file)
+    bg = cv2.resize(bg, (img.shape[1], img.shape[0]))
+
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    m1 = cv2.inRange(hsv, (0, 120, 70), (10, 255, 255))
+    m2 = cv2.inRange(hsv, (170, 120, 70), (180, 255, 255))
+    mask = cv2.bitwise_or(m1, m2)
+
+    kernel = np.ones((3, 3), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
+    mask = cv2.dilate(mask, kernel, iterations=1)
+
+    inv = cv2.bitwise_not(mask)
+    cloak_area = cv2.bitwise_and(bg, bg, mask=mask)
+    rest = cv2.bitwise_and(img, img, mask=inv)
+    result = cv2.add(cloak_area, rest)
+
+    st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB),
+             caption="Invisible cloak result")
