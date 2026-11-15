@@ -4,6 +4,23 @@ import pandas as pd
 import cv2
 from PIL import Image, ImageDraw
 from ultralytics import YOLO
+from PIL import Image
+
+camera = st.camera_input("Take a picture")
+uploaded = st.file_uploader("Or upload a photo", type=["jpg", "png"])
+
+source = camera or uploaded
+
+if source:
+    img = Image.open(source)
+    img_array = np.array(img)
+
+    st.image(img, caption="Original")
+
+    # TODO: your pattern-detection logic goes here.
+    # It should take img_array and return an image (e.g., a NumPy array)
+    # result = detect_hidden_patterns(img_array)
+    # st.image(result, caption="Detected patterns")
 
 # ==========================================
 # INVISIBLE WORLD 2.0
